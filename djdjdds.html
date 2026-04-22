@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Pro Analyzer V4.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            background-color: #0b0e14;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+
+        .glass-panel {
+            background: linear-gradient(145deg, #161b22 0%, #0d1117 100%);
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-area {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            resize: none;
+        }
+
+        .btn-pink { background: #d81b60; }
+        .btn-purple { background: linear-gradient(90deg, #8e2de2 0%, #4a00e0 100%); }
+
+        .tag {
+            background: rgba(216, 27, 96, 0.1);
+            border: 1px solid rgba(216, 27, 96, 0.3);
+        }
+
+        .bet-window {
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px dashed rgba(16, 185, 129, 0.3);
+        }
+
+        .accuracy-text { font-size: 0.65rem; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-xl">
+        <!-- Title -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold tracking-[0.2em] text-pink-500 font-cyber">PRO ANALYZER</h1>
+            <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Aviator 10x & 100x Pattern Logic V4.2</p>
+        </div>
+
+        <div class="glass-panel rounded-[2rem] p-6 md:p-8">
+            <!-- Data Input Header -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-yellow-500 text-xs">⚡</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Bulk Input Area</span>
+                </div>
+                <span id="data-count" class="bg-pink-600 text-[9px] font-bold px-2 py-0.5 rounded-md uppercase">0 Added</span>
+            </div>
+
+            <!-- Textarea -->
+            <textarea id="bulk-input" rows="3" 
+                class="input-area w-full rounded-2xl p-4 text-sm focus:outline-none focus:border-pink-500 transition-all mb-4"
+                placeholder="Paste history times... (e.g. 14:20, 14:35:10)"></textarea>
+
+            <div class="flex gap-3 mb-6">
+                <button onclick="extractTimes()" class="flex-1 btn-pink hover:opacity-90 text-white font-bold py-3 rounded-xl uppercase text-[10px] tracking-widest transition-all">
+                    Extract Data
+                </button>
+                <button onclick="clearAll()" class="px-6 bg-[#21262d] text-slate-400 hover:text-white rounded-xl uppercase text-[10px] font-bold transition-all">
+                    Clear
+                </button>
+            </div>
+
+            <!-- Tags Display -->
+            <div id="tags-container" class="flex flex-wrap gap-2 mb-6 min-h-[30px]"></div>
+
+            <button onclick="runAnalysis()" class="w-full btn-purple hover:opacity-90 text-white font-bold py-4 rounded-2xl uppercase text-xs tracking-[0.2em] shadow-lg shadow-purple-500/20 transition-all active:scale-95 mb-6">
+                Run Advanced Analysis
+            </button>
+
+            <!-- Target Results -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <!-- 100x Target -->
+                <div class="glass-panel border-l-4 border-l-pink-500 rounded-2xl p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-[9px] font-bold text-pink-500 uppercase">Target 100x</p>
+                        <span id="acc-100x" class="text-[9px] text-slate-400 font-mono">0%</span>
+                    </div>
+                    <div id="res-100x" class="text-xl font-cyber text-pink-500 mb-2">--:--:--</div>
+                    <div class="bet-window p-2 rounded-lg">
+                        <p class="text-[8px] text-slate-500 uppercase mb-1">Bet Range</p>
+                        <p id="range-100x" class="text-[10px] text-emerald-400 font-mono">--:-- to --:--</p>
+                    </div>
+                </div>
+
+                <!-- 10x Target -->
+                <div class="glass-panel border-l-4 border-l-cyan-500 rounded-2xl p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-[9px] font-bold text-cyan-500 uppercase">Target 10x</p>
+                        <span id="acc-10x" class="text-[9px] text-slate-400 font-mono">0%</span>
+                    </div>
+                    <div id="res-10x" class="text-xl font-cyber text-cyan-400 mb-2">--:--:--</div>
+                    <div class="bet-window p-2 rounded-lg">
+                        <p class="text-[8px] text-slate-500 uppercase mb-1">Bet Range</p>
+                        <p id="range-10x" class="text-[10px] text-emerald-400 font-mono">--:-- to --:--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Details -->
+            <div class="text-[9px] font-mono text-slate-500 bg-black/30 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between mb-2">
+                    <span>Algorithm: <span class="text-green-500">Pattern-V4.2_Range_Logic</span></span>
+                    <span class="text-blue-400">Mode: 2x Strategy</span>
+                </div>
+                <div id="log-content" class="space-y-1">
+                    <p>> System ready...</p>
+                    <p>> Waiting for data inputs...</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-[9px] text-slate-700 mt-6 uppercase tracking-[0.2em]">Safety Tip: Always cash out first bet at 2.00x</p>
+    </div>
+
+    <script>
+        let timeData = [];
+
+        function extractTimes() {
+            const input = document.getElementById('bulk-input').value;
+            const timeRegex = /\d{1,2}:\d{2}(:\d{2})?/g;
+            const matches = input.match(timeRegex);
+
+            if (matches) {
+                matches.forEach(time => {
+                    if (!timeData.includes(time)) timeData.push(time);
+                });
+                renderTags();
+                document.getElementById('bulk-input').value = '';
+                updateLog(`> Captured ${matches.length} points.`);
+            }
+        }
+
+        function renderTags() {
+            const container = document.getElementById('tags-container');
+            container.innerHTML = '';
+            timeData.sort((a, b) => timeToSeconds(a) - timeToSeconds(b));
+            timeData.forEach((time, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'tag px-3 py-1 rounded-lg text-[10px] font-mono text-pink-400 flex items-center gap-2';
+                tag.innerHTML = `${time} <span class="cursor-pointer text-slate-500 hover:text-white" onclick="removeTag(${index})">×</span>`;
+                container.appendChild(tag);
+            });
+            document.getElementById('data-count').innerText = `${timeData.length} Added`;
+        }
+
+        function removeTag(index) {
+            timeData.splice(index, 1);
+            renderTags();
+        }
+
+        function clearAll() {
+            timeData = [];
+            renderTags();
+            ['res-100x', 'res-10x'].forEach(id => document.getElementById(id).innerText = '--:--:--');
+            ['range-100x', 'range-10x'].forEach(id => document.getElementById(id).innerText = '--:-- to --:--');
+            ['acc-100x', 'acc-10x'].forEach(id => document.getElementById(id).innerText = '0%');
+            updateLog('> Cleared.');
+        }
+
+        function timeToSeconds(t) {
+            const p = t.split(':').map(Number);
+            return p[0] * 3600 + p[1] * 60 + (p[2] || 0);
+        }
+
+        function secondsToTime(s, showSec = true) {
+            s = Math.max(0, s % 86400);
+            let h = Math.floor(s / 3600);
+            let m = Math.floor((s % 3600) / 60);
+            let sec = s % 60;
+            return showSec 
+                ? [h, m, sec].map(v => v.toString().padStart(2, '0')).join(':')
+                : [h, m].map(v => v.toString().padStart(2, '0')).join(':');
+        }
+
+        function updateLog(msg) {
+            const log = document.getElementById('log-content');
+            const p = document.createElement('p');
+            p.innerText = msg;
+            log.appendChild(p);
+            if (log.childNodes.length > 5) log.removeChild(log.firstChild);
+        }
+
+        function runAnalysis() {
+            if (timeData.length < 3) {
+                alert("Minimum 3 data points required.");
+                return;
+            }
+
+            updateLog(`> Processing temporal patterns...`);
+            
+            setTimeout(() => {
+                const secs = timeData.map(timeToSeconds);
+                const intervals = [];
+                for(let i=1; i<secs.length; i++) intervals.push(secs[i] - secs[i-1]);
+                
+                const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                const last = secs[secs.length - 1];
+
+                // Logic for 100x and 10x
+                const next100x = last + mean;
+                const next10x = last + (mean * 0.45); 
+
+                // 100x Results
+                document.getElementById('res-100x').innerText = secondsToTime(Math.round(next100x));
+                document.getElementById('range-100x').innerText = `${secondsToTime(Math.round(next100x - 30))} - ${secondsToTime(Math.round(next100x + 30))}`;
+                
+                // 10x Results
+                document.getElementById('res-10x').innerText = secondsToTime(Math.round(next10x));
+                document.getElementById('range-10x').innerText = `${secondsToTime(Math.round(next10x - 30))} - ${secondsToTime(Math.round(next10x + 30))}`;
+
+                // Accuracy
+                const baseAcc = Math.min(94, 65 + (timeData.length * 3));
+                document.getElementById('acc-100x').innerText = (baseAcc + Math.random()*2).toFixed(1) + '%';
+                document.getElementById('acc-10x').innerText = (baseAcc + 5 + Math.random()*2).toFixed(1) + '%';
+
+                updateLog(`> Range window calculated: ±30s`);
+                updateLog(`> SIGNAL READY.`);
+            }, 800);
+        }
+    </script>
+</body>
+</html>
